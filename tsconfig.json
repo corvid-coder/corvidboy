@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "module": "ES2015",
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "sourceMap": true
+  }
+}
