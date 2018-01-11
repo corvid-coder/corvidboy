@@ -3,7 +3,7 @@ import { shouldNever } from "./utility.js"
 import { MMU } from "./mmu.js"
 
 export interface registers {
-  [index: string]: number,
+  [index: string]: byte | word,
   a: byte,
   f: byte,
   b: byte,
@@ -26,27 +26,32 @@ export class CPU {
     sp: 0,
     pc: 0,
   }, {
-    get(rs, r): number {
-      if (r === "hl") {
-        return rs.h << 8 + rs.l
-      } else if (r === "ab") {
-        return rs.a << 8 + rs.b
+    get(rs, r): byte | word {
+       if (r === "af") {
+        return rs.a << 8 + rs.f
+      } else if (r === "bc") {
+        return rs.b << 8 + rs.c
       } else if (r === "de") {
         return rs.d << 8 + rs.e
+      } else if (r === "hl") {
+        return rs.h << 8 + rs.l
       } else {
         return rs[r]
       }
     },
     set(rs, r, value) : boolean {
-      if (r === "hl") {
-        rs.h = value >> 8
-        rs.l = value & 0xFF
-      } else if (r === "ab") {
+       if (r === "af") {
         rs.a = value >> 8
-        rs.b = value & 0xFF
+        rs.f = value & 0xFF
+      } else if (r === "bc") {
+        rs.b = value >> 8
+        rs.c = value & 0xFF
       } else if (r === "de") {
         rs.d = value >> 8
         rs.e = value & 0xFF
+      } else if (r === "hl") {
+        rs.h = value >> 8
+        rs.l = value & 0xFF
       }
       return true
     }
@@ -59,29 +64,11 @@ export class CPU {
     const op : OPS = this.mmu.read_b(pc) as OPS
     let bytes = 1
     switch(op) {
-      //TODO: ALL FLAGS
-      case OPS.LD_B_n:
-        this.registers.b = this.mmu.read_b(pc + 1)
-        bytes += 1
-        break
-      case OPS.LD_C_n:
-        this.registers.c = this.mmu.read_b(pc + 1)
-        bytes += 1
-        break
-      case OPS.LD_D_n:
-        this.registers.d = this.mmu.read_b(pc + 1)
-        bytes += 1
-        break
-      case OPS.LD_E_n:
-        this.registers.e = this.mmu.read_b(pc + 1)
-        bytes += 1
-        break
-      case OPS.LD_H_n:
-        this.registers.h = this.mmu.read_b(pc + 1)
-        bytes += 1
-        break
-      case OPS.LD_L_n:
-        this.registers.l = this.mmu.read_b(pc + 1)
+      
+      //TODO: IMPLEMENT ALL FLAGS
+      
+      case OPS.LD_A_b:
+        this.registers.a = this.mmu.read_b(pc + 1)
         bytes += 1
         break
       case OPS.LD_A_A:
@@ -105,8 +92,41 @@ export class CPU {
       case OPS.LD_A_L:
         this.registers.a = this.registers.l
         break
+      case OPS.LD_A_BC:
+        this.registers.a = this.mmu.read_b(this.registers.bc)
+        break
+      case OPS.LD_A_DE:
+        this.registers.a = this.mmu.read_b(this.registers.de)
+        break
       case OPS.LD_A_HL:
-        this.registers.a = this.registers.hl
+        this.registers.a = this.mmu.read_b(this.registers.hl)
+        break
+      case OPS.LD_A_HLi:
+        this.registers.a = this.mmu.read_b(this.registers.hl)
+        this.registers.hl += 1
+        break
+      case OPS.LD_A_HLd:
+        this.registers.a = this.mmu.read_b(this.registers.hl)
+        this.registers.hl -= 1
+        break
+      case OPS.LD_A_a:
+        this.registers.a = this.mmu.read_b(0xFF00 + this.mmu.read_b(pc + 1))
+        bytes += 1
+        break
+      case OPS.LD_A_Ca:
+        this.registers.a = this.mmu.read_b(0xFF00 + this.registers.c)
+        break
+      case OPS.LD_A_aa:
+        this.registers.a = this.mmu.read_b(this.mmu.read_w(pc + 1))
+        bytes += 2
+        break
+        
+      case OPS.LD_B_b:
+        this.registers.b = this.mmu.read_b(pc + 1)
+        bytes += 1
+        break
+      case OPS.LD_B_A:
+        this.registers.b = this.registers.a
         break
       case OPS.LD_B_B:
         this.registers.b = this.registers.b
@@ -127,7 +147,15 @@ export class CPU {
         this.registers.b = this.registers.l
         break
       case OPS.LD_B_HL:
-        this.registers.b = this.registers.hl
+        this.registers.b = this.mmu.read_b(this.registers.hl)
+        break
+        
+      case OPS.LD_C_b:
+        this.registers.c = this.mmu.read_b(pc + 1)
+        bytes += 1
+        break
+      case OPS.LD_C_A:
+        this.registers.d = this.registers.a
         break
       case OPS.LD_C_B:
         this.registers.c = this.registers.b
@@ -148,7 +176,15 @@ export class CPU {
         this.registers.c = this.registers.l
         break
       case OPS.LD_C_HL:
-        this.registers.c = this.registers.hl
+        this.registers.c = this.mmu.read_b(this.registers.hl)
+        break
+        
+      case OPS.LD_D_b:
+        this.registers.d = this.mmu.read_b(pc + 1)
+        bytes += 1
+        break
+      case OPS.LD_D_A:
+        this.registers.d = this.registers.a
         break
       case OPS.LD_D_B:
         this.registers.d = this.registers.b
@@ -169,7 +205,15 @@ export class CPU {
         this.registers.d = this.registers.l
         break
       case OPS.LD_D_HL:
-        this.registers.d = this.registers.hl
+        this.registers.d = this.mmu.read_b(this.registers.hl)
+        break
+        
+      case OPS.LD_E_b:
+        this.registers.e = this.mmu.read_b(pc + 1)
+        bytes += 1
+        break
+      case OPS.LD_E_A:
+        this.registers.e = this.registers.a
         break
       case OPS.LD_E_B:
         this.registers.e = this.registers.b
@@ -190,7 +234,15 @@ export class CPU {
         this.registers.e = this.registers.l
         break
       case OPS.LD_E_HL:
-        this.registers.e = this.registers.hl
+        this.registers.e = this.mmu.read_b(this.registers.hl)
+        break
+        
+      case OPS.LD_H_b:
+        this.registers.h = this.mmu.read_b(pc + 1)
+        bytes += 1
+        break
+      case OPS.LD_H_A:
+        this.registers.h = this.registers.a
         break
       case OPS.LD_H_B:
         this.registers.h = this.registers.b
@@ -211,7 +263,15 @@ export class CPU {
         this.registers.h = this.registers.l
         break
       case OPS.LD_H_HL:
-        this.registers.h = this.registers.hl
+        this.registers.h = this.mmu.read_b(this.registers.hl)
+        break
+        
+      case OPS.LD_L_b:
+        this.registers.l = this.mmu.read_b(pc + 1)
+        bytes += 1
+        break
+      case OPS.LD_L_A:
+        this.registers.l = this.registers.a
         break
       case OPS.LD_L_B:
         this.registers.l = this.registers.b
@@ -232,29 +292,126 @@ export class CPU {
         this.registers.l = this.registers.l
         break
       case OPS.LD_L_HL:
-        this.registers.l = this.registers.hl
+        this.registers.l = this.mmu.read_b(this.registers.hl)
+        break
+      
+      case OPS.LD_BC_w:
+        this.registers.bc = this.mmu.read_w(pc + 1)
+        bytes += 2
+        break
+      case OPS.LD_BC_A:
+        this.mmu.write_b(this.registers.bc, this.registers.a)
+        bytes += 1
+        break
+        
+        
+      case OPS.LD_DE_w:
+        this.registers.de = this.mmu.read_w(pc + 1)
+        bytes += 2
+        break
+      case OPS.LD_DE_A:
+        this.mmu.write_b(this.registers.de, this.registers.a)
+        bytes += 1
+        break
+        
+      case OPS.LD_HL_b:
+        this.mmu.write_b(this.registers.hl, this.mmu.read_b(pc + 1))
+        bytes += 1
+        break
+      case OPS.LD_HL_w:
+        this.registers.hl = this.mmu.read_w(pc + 1)
+        bytes += 2
+        break
+      case OPS.LD_HL_A:
+        this.mmu.write_b(this.registers.hl, this.registers.a)
+        break
+      case OPS.LD_HLi_A:
+        this.mmu.write_b(this.registers.hl, this.registers.a)
+        this.registers.hl += 1
+        break
+      case OPS.LD_HLd_A:
+        this.mmu.write_b(this.registers.hl, this.registers.a)
+        this.registers.hl -= 1
         break
       case OPS.LD_HL_B:
-        this.registers.hl = this.registers.b
+        this.mmu.write_b(this.registers.hl, this.registers.b)
         break
       case OPS.LD_HL_C:
-        this.registers.hl = this.registers.c
+        this.mmu.write_b(this.registers.hl, this.registers.c)
         break
       case OPS.LD_HL_D:
-        this.registers.hl = this.registers.d
+        this.mmu.write_b(this.registers.hl, this.registers.d)
         break
       case OPS.LD_HL_E:
-        this.registers.hl = this.registers.e
+        this.mmu.write_b(this.registers.hl, this.registers.e)
         break
       case OPS.LD_HL_H:
-        this.registers.hl = this.registers.h
+        this.mmu.write_b(this.registers.hl, this.registers.h)
         break
       case OPS.LD_HL_L:
-        this.registers.hl = this.registers.l
+        this.mmu.write_b(this.registers.hl, this.registers.l)
         break
-      case OPS.LD_HL_b:
-        this.registers.hl = this.registers.b
+      
+      case OPS.LDH_a_A:
+        this.mmu.write_b(0xFF00 + this.mmu.read_b(pc + 1), this.registers.a)
+        bytes += 1
         break
+      case OPS.LD_Ca_A:
+        this.mmu.write_b(0xFF00 + this.registers.c, this.registers.a)
+        break
+      case OPS.LD_aa_A:
+        this.mmu.write_b(this.mmu.read_w(pc + 1), this.registers.a)
+        bytes += 2
+        break
+        
+      case OPS.PUSH_AF:
+        this.registers.sp += 2
+        this.mmu.write_b(this.registers.sp, this.registers.af)
+        break
+      case OPS.PUSH_BC:
+        this.registers.sp += 2
+        this.mmu.write_b(this.registers.sp, this.registers.bc)
+        break
+      case OPS.PUSH_DE:
+        this.registers.sp += 2
+        this.mmu.write_b(this.registers.sp, this.registers.de)
+        break
+      case OPS.PUSH_HL:
+        this.registers.sp += 2
+        this.mmu.write_b(this.registers.sp, this.registers.hl)
+        break
+      case OPS.POP_AF:
+        this.registers.af = this.mmu.read_w(this.registers.sp)
+        this.registers.sp += 2
+        break
+      case OPS.POP_BC:
+        this.registers.bc = this.mmu.read_w(this.registers.sp)
+        this.registers.sp += 2
+        break
+      case OPS.POP_DE:
+        this.registers.de = this.mmu.read_w(this.registers.sp)
+        this.registers.sp += 2
+        break
+      case OPS.POP_HL:
+        this.registers.hl = this.mmu.read_w(this.registers.sp)
+        this.registers.sp += 2
+        break
+      case OPS.LD_SP_w:
+        this.registers.sp = this.mmu.read_w(pc + 1)
+        bytes += 2
+        break
+      case OPS.LD_SP_HL:
+        this.registers.sp = this.registers.hl
+        break
+      case OPS.LD_HL_SPs:
+        this.registers.hl = this.registers.sp + this.mmu.read_b(pc + 1) - 128
+        bytes += 1
+        break
+      case OPS.LD_aa_SP:
+        this.mmu.write_w(this.mmu.read_w(pc + 1), this.registers.sp)
+        bytes += 2
+        break
+      
       default:
         shouldNever(op)
     }
