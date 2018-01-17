@@ -120,6 +120,12 @@ export class CPU {
         this.registers.a = this.mmu.read_b(this.mmu.read_w(pc + 1))
         bytes += 2
         break
+      case OPS.Ai:
+        this.registers.a += 1
+        break
+      case OPS.Ad:
+        this.registers.a -= 1
+        break
         
       case OPS.LD_B_b:
         this.registers.b = this.mmu.read_b(pc + 1)
@@ -148,6 +154,12 @@ export class CPU {
         break
       case OPS.LD_B_HL:
         this.registers.b = this.mmu.read_b(this.registers.hl)
+        break
+      case OPS.Bi:
+        this.registers.b += 1
+        break
+      case OPS.Bd:
+        this.registers.b -= 1
         break
         
       case OPS.LD_C_b:
@@ -178,6 +190,12 @@ export class CPU {
       case OPS.LD_C_HL:
         this.registers.c = this.mmu.read_b(this.registers.hl)
         break
+      case OPS.Ci:
+        this.registers.c += 1
+        break
+      case OPS.Cd:
+        this.registers.c -= 1
+        break
         
       case OPS.LD_D_b:
         this.registers.d = this.mmu.read_b(pc + 1)
@@ -206,6 +224,12 @@ export class CPU {
         break
       case OPS.LD_D_HL:
         this.registers.d = this.mmu.read_b(this.registers.hl)
+        break
+      case OPS.Di:
+        this.registers.d += 1
+        break
+      case OPS.Dd:
+        this.registers.d -= 1
         break
         
       case OPS.LD_E_b:
@@ -236,6 +260,12 @@ export class CPU {
       case OPS.LD_E_HL:
         this.registers.e = this.mmu.read_b(this.registers.hl)
         break
+      case OPS.Ei:
+        this.registers.e += 1
+        break
+      case OPS.Ed:
+        this.registers.e -= 1
+        break
         
       case OPS.LD_H_b:
         this.registers.h = this.mmu.read_b(pc + 1)
@@ -265,6 +295,12 @@ export class CPU {
       case OPS.LD_H_HL:
         this.registers.h = this.mmu.read_b(this.registers.hl)
         break
+      case OPS.Hi:
+        this.registers.h += 1
+        break
+      case OPS.Hd:
+        this.registers.h -= 1
+        break
         
       case OPS.LD_L_b:
         this.registers.l = this.mmu.read_b(pc + 1)
@@ -293,6 +329,12 @@ export class CPU {
         break
       case OPS.LD_L_HL:
         this.registers.l = this.mmu.read_b(this.registers.hl)
+        break
+      case OPS.Li:
+        this.registers.l += 1
+        break
+      case OPS.Ld:
+        this.registers.l -= 1
         break
       
       case OPS.LD_BC_w:
@@ -350,6 +392,12 @@ export class CPU {
         break
       case OPS.LD_HL_L:
         this.mmu.write_b(this.registers.hl, this.registers.l)
+        break
+      case OPS.HLi:
+        this.registers.hl += 1
+        break
+      case OPS.HLd:
+        this.registers.hl -= 1
         break
       
       case OPS.LDH_a_A:
@@ -410,6 +458,155 @@ export class CPU {
       case OPS.LD_aa_SP:
         this.mmu.write_w(this.mmu.read_w(pc + 1), this.registers.sp)
         bytes += 2
+        break
+      
+      case OPS.CPL:
+        this.registers.a = this.registers.a - ((this.registers.a - 127.5) * 2)
+        break
+      
+      case OPS.ADD_A_A:
+        this.registers.a += this.registers.a
+        break
+      case OPS.ADD_A_B:
+        this.registers.a += this.registers.b
+        break
+      case OPS.ADD_A_C:
+        this.registers.a += this.registers.c
+        break
+      case OPS.ADD_A_D:
+        this.registers.a += this.registers.d
+        break
+      case OPS.ADD_A_E:
+        this.registers.a += this.registers.e
+        break
+      case OPS.ADD_A_H:
+        this.registers.a += this.registers.h
+        break
+      case OPS.ADD_A_L:
+        this.registers.a += this.registers.l
+        break
+      case OPS.ADD_A_HL:
+        this.registers.a += this.mmu.read_b(this.registers.hl)
+        break
+      case OPS.ADD_A_b:
+        this.registers.a += this.mmu.read_b(this.mmu.read_b(pc + 1))
+        bytes += 1
+        break
+      
+      case OPS.SUB_A_A:
+        this.registers.a -= this.registers.a
+        break
+      case OPS.SUB_A_B:
+        this.registers.a -= this.registers.b
+        break
+      case OPS.SUB_A_C:
+        this.registers.a -= this.registers.c
+        break
+      case OPS.SUB_A_D:
+        this.registers.a -= this.registers.d
+        break
+      case OPS.SUB_A_E:
+        this.registers.a -= this.registers.e
+        break
+      case OPS.SUB_A_H:
+        this.registers.a -= this.registers.h
+        break
+      case OPS.SUB_A_L:
+        this.registers.a -= this.registers.l
+        break
+      case OPS.SUB_A_HL:
+        this.registers.a -= this.mmu.read_b(this.registers.hl)
+        break
+      case OPS.SUB_A_b:
+        this.registers.a -= this.mmu.read_b(this.mmu.read_b(pc + 1))
+        bytes += 1
+        break
+        
+      case OPS.AND_A_A:
+        this.registers.a &= this.registers.a
+        break
+      case OPS.AND_A_B:
+        this.registers.a &= this.registers.b
+        break
+      case OPS.AND_A_C:
+        this.registers.a &= this.registers.c
+        break
+      case OPS.AND_A_D:
+        this.registers.a &= this.registers.d
+        break
+      case OPS.AND_A_E:
+        this.registers.a &= this.registers.e
+        break
+      case OPS.AND_A_H:
+        this.registers.a &= this.registers.h
+        break
+      case OPS.AND_A_L:
+        this.registers.a &= this.registers.l
+        break
+      case OPS.AND_A_HL:
+        this.registers.a &= this.mmu.read_b(this.registers.hl)
+        break
+      case OPS.AND_A_b:
+        this.registers.a &= this.mmu.read_b(this.mmu.read_b(pc + 1))
+        bytes += 1
+        break
+      
+      case OPS.XOR_A_A:
+        this.registers.a ^= this.registers.a
+        break
+      case OPS.XOR_A_B:
+        this.registers.a ^= this.registers.b
+        break
+      case OPS.XOR_A_C:
+        this.registers.a ^= this.registers.c
+        break
+      case OPS.XOR_A_D:
+        this.registers.a ^= this.registers.d
+        break
+      case OPS.XOR_A_E:
+        this.registers.a ^= this.registers.e
+        break
+      case OPS.XOR_A_H:
+        this.registers.a ^= this.registers.h
+        break
+      case OPS.XOR_A_L:
+        this.registers.a ^= this.registers.l
+        break
+      case OPS.XOR_A_HL:
+        this.registers.a ^= this.mmu.read_b(this.registers.hl)
+        break
+      case OPS.XOR_A_b:
+        this.registers.a ^= this.mmu.read_b(this.mmu.read_b(pc + 1))
+        bytes += 1
+        break
+        
+      case OPS.OR_A_A:
+        this.registers.a |= this.registers.a
+        break
+      case OPS.OR_A_B:
+        this.registers.a |= this.registers.b
+        break
+      case OPS.OR_A_C:
+        this.registers.a |= this.registers.c
+        break
+      case OPS.OR_A_D:
+        this.registers.a |= this.registers.d
+        break
+      case OPS.OR_A_E:
+        this.registers.a |= this.registers.e
+        break
+      case OPS.OR_A_H:
+        this.registers.a |= this.registers.h
+        break
+      case OPS.OR_A_L:
+        this.registers.a |= this.registers.l
+        break
+      case OPS.OR_A_HL:
+        this.registers.a |= this.mmu.read_b(this.registers.hl)
+        break
+      case OPS.OR_A_b:
+        this.registers.a |= this.mmu.read_b(this.mmu.read_b(pc + 1))
+        bytes += 1
         break
       
       default:
